@@ -18,8 +18,7 @@ function App() {
     // console.log(userAddress);
 
     const account = useAccount({
-        onConnect({ address, connector, isReconnected }) {
-            // console.log('Connected', { address, connector, isReconnected });
+        onConnect({ address }) {
             setConnectedAddress(address);
         },
     });
