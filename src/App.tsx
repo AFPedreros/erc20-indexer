@@ -10,6 +10,7 @@ function App() {
     const [userAddress, setUserAddress] = useState<any>('');
     const [results, setResults] = useState<any>([]);
     const [hasQueried, setHasQueried] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const [tokenDataObjects, setTokenDataObjects] = useState<any>([]);
     const [connectedAddress, setConnectedAddress] = useState<
         string | undefined
@@ -24,6 +25,7 @@ function App() {
     });
 
     async function getTokenBalance(address: string) {
+        setIsLoading(true);
         const config = {
             apiKey: ALCHEMY_API_KEY,
             network: Network.ETH_MAINNET,
@@ -46,6 +48,7 @@ function App() {
 
         setTokenDataObjects(await Promise.all(tokenDataPromises));
         setHasQueried(true);
+        setIsLoading(false);
         setUserAddress('');
     }
 
@@ -68,10 +71,19 @@ function App() {
             </div>
             {connectedAddress ? (
                 <div className='absolute top-0 left-0 m-4'>
-                    <Button
-                        onClick={getMyTokenBalance}
-                        text='Check My ERC-20 Token Balances'
-                    />
+                    {isLoading ? (
+                        <Button
+                            onClick={queryTokenBalance}
+                            text='Loading...'
+                            disabled={isLoading}
+                        />
+                    ) : (
+                        <Button
+                            onClick={getMyTokenBalance}
+                            text='Check My ERC-20 Token Balances'
+                            disabled={isLoading}
+                        />
+                    )}
                 </div>
             ) : null}
             <div className='flex flex-col items-center justify-center'>
@@ -99,10 +111,19 @@ function App() {
                         className='w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500'
                     />
                 </div>
-                <Button
-                    onClick={queryTokenBalance}
-                    text='Check ERC-20 Token Balances'
-                />
+                {isLoading ? (
+                    <Button
+                        onClick={queryTokenBalance}
+                        text='Loading...'
+                        disabled={isLoading}
+                    />
+                ) : (
+                    <Button
+                        onClick={queryTokenBalance}
+                        text='Check ERC-20 Token Balances'
+                        disabled={isLoading}
+                    />
+                )}
                 <h2 className='mb-6 text-lg font-normal text-gray-400'>
                     ERC-20 token balances:
                 </h2>
@@ -114,6 +135,10 @@ function App() {
                             e.tokenBalance,
                             tokenDataObjects[i].decimals
                         );
+
+                        const decimalsLength = balance
+                            .toString()
+                            .split('.')[1].length;
 
                         if (balance === '0.0') {
                             return;
@@ -129,7 +154,9 @@ function App() {
                                 </p>
                                 <p>
                                     <b>Balance: </b>
-                                    {balance}
+                                    {decimalsLength <= 3
+                                        ? balance
+                                        : parseFloat(balance).toFixed(3)}
                                 </p>
                             </div>
                         );
